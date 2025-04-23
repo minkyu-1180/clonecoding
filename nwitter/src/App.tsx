@@ -1,9 +1,9 @@
 // Dependencies
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { createGlobalStyle } from 'styled-components';
+import { styled, createGlobalStyle } from 'styled-components';
 import reset from 'styled-reset';
-import { useEffect, useState } from 'react';
 
+import { useEffect, useState } from 'react';
 // components
 import Layout from './components/layout.tsx';
 // routes
@@ -12,6 +12,7 @@ import Home from './routes/home.tsx';
 import Profile from './routes/profile.tsx';
 import CreateAccount from './routes/create-account.tsx';
 import Login from './routes/login.tsx';
+import { auth } from './firebase.ts';
 
 // router
 const router = createBrowserRouter([
@@ -54,9 +55,19 @@ const GlobalStyles = createGlobalStyle`
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif
   }
 `;
+
+// Wrapper
+const Wrapper = styled.div`
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+`;
 function App() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const init = async () => {
+    // 최초 인증 상태가 완료될 때 시작되는 Promise return
+    // Firebase가 쿠키와 토큰을 읽고, 백엔드와 소통해서 로그인 여부 확인
+    await auth.authStateReady();
     // firebase 기다리기 위해
     setIsLoading(false);
   };
@@ -64,10 +75,10 @@ function App() {
     init();
   }, []);
   return (
-    <>
+    <Wrapper>
       <GlobalStyles />
       {isLoading ? <LoadingScreen /> : <RouterProvider router={router} />}
-    </>
+    </Wrapper>
   );
 }
 
