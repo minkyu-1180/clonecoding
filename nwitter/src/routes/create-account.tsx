@@ -1,10 +1,13 @@
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 // firebase
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth } from '../firebase.ts';
-
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { FirebaseError } from 'firebase/app';
+// CSS
 import { styled } from 'styled-components';
+// Components
+import GithubButton from '../components/github-btn.tsx';
 
 // styled components
 // 1. Wrapper
@@ -23,6 +26,7 @@ const Title = styled.h1`
 // 3. Form
 const Form = styled.form`
   margin-top: 50px;
+  margin-bottom: 10px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -47,6 +51,9 @@ const Error = styled.span`
   font-weight: 600;
   color: tomato;
 `;
+
+// Switcher
+const Switcher = styled.div``;
 function CreateAccount() {
   // 페이지 로딩 여부
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -58,6 +65,8 @@ function CreateAccount() {
   const [email, setEmail] = useState<string>('');
   // 사용자 비밀번호
   const [password, setPassword] = useState<string>('');
+  // 확인 비밀번호
+  const [password2, setPassword2] = useState<string>('');
 
   const navigate = useNavigate();
 
@@ -72,19 +81,53 @@ function CreateAccount() {
       setEmail(value);
     } else if (name == 'password') {
       setPassword(value);
+    } else if (name == 'password2') {
+      setPassword2(value);
+    }
+  };
+
+  const handleErrorMessage = (code: string) => {
+    switch (code) {
+      case 'auth/user-not-found':
+        return '이메일이 일치하지 않습니다.';
+      case 'auth/wrong-password':
+        return '비밀번호가 일치하지 않습니다.';
+      case 'auth/email-already-in-use':
+        return '이미 사용 중인 이메일입니다.';
+      case 'auth/weak-password':
+        return '비밀번호는 6글자 이상이어야 합니다.';
+      case 'auth/network-request-failed':
+        return '네트워크 연결에 실패 하였습니다.';
+      case 'auth/invalid-email':
+        return '잘못된 이메일 형식입니다.';
+      case 'auth/internal-error':
+        return '잘못된 요청입니다.';
+      default:
+        return '로그인에 실패 하였습니다.';
     }
   };
   // form Event
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    setError('');
     e.preventDefault();
     // 로딩중이거나 비어있는 항목이 있을 경우
-    if (isLoading || name === '' || email === '' || password === '') {
+    if (
+      isLoading ||
+      name === '' ||
+      email === '' ||
+      password === '' ||
+      password2 === ''
+    ) {
       setError('모든 필드를 채워주세요.');
+      return;
+    }
+    if (password !== password2) {
+      setError('비밀번호가 일치하는지 확인해 주세요.');
       return;
     }
 
     setIsLoading(true);
-    setError(''); // 이전 에러 초기화
+    // setError(''); // 이전 에러 초기화
     try {
       // 1. create an account
       const credentials = await createUserWithEmailAndPassword(
@@ -102,11 +145,13 @@ function CreateAccount() {
     } catch (e) {
       // 에러 내역 보여주기
       console.log(e);
-      // setError(e)
+      if (e instanceof FirebaseError) {
+        const message = handleErrorMessage(e.code);
+        setError(message);
+      }
     } finally {
       setIsLoading(false);
     }
-    // console.log(name, email, password);
   };
   return (
     <>
@@ -119,7 +164,7 @@ function CreateAccount() {
             value={name}
             placeholder="Name"
             type="text"
-            required
+            // required
           />
           <Input
             onChange={onChange}
@@ -127,7 +172,7 @@ function CreateAccount() {
             value={email}
             placeholder="Email"
             type="email"
-            required
+            // required
           />
           <Input
             onChange={onChange}
@@ -135,14 +180,27 @@ function CreateAccount() {
             value={password}
             placeholder="Password"
             type="password"
-            required
+            // required
           />
+          <Input
+            onChange={onChange}
+            name="password2"
+            value={password2}
+            placeholder="Password Check"
+            type="password"
+            // required
+          />
+
           <Input
             type="submit"
             value={isLoading ? 'Loading...' : 'Create Account'}
           />
         </Form>
         {error !== '' ? <Error>{error}</Error> : null}
+        <Switcher>
+          Want to Log In? <Link to="/login">Log In</Link>
+        </Switcher>
+        <GithubButton />
       </Wrapper>
     </>
   );

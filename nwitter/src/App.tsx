@@ -6,8 +6,9 @@ import reset from 'styled-reset';
 import { useEffect, useState } from 'react';
 // components
 import Layout from './components/layout.tsx';
-// routes
 import LoadingScreen from './components/loading-screen.tsx';
+import ProtectedRoute from './components/protected-route.tsx';
+// routes
 import Home from './routes/home.tsx';
 import Profile from './routes/profile.tsx';
 import CreateAccount from './routes/create-account.tsx';
@@ -19,7 +20,11 @@ const router = createBrowserRouter([
   // 기본 router(/ -> Layout)
   {
     path: '/',
-    element: <Layout />,
+    element: (
+      <ProtectedRoute>
+        <Layout />
+      </ProtectedRoute>
+    ),
     // Layout 하위 router
     children: [
       {
