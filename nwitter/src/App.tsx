@@ -1,23 +1,17 @@
-// Dependencies
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { styled, createGlobalStyle } from 'styled-components';
+import { RouterProvider, createBrowserRouter } from 'react-router-dom';
+import Layout from './components/layout';
+import Home from './routes/home';
+import Profile from './routes/profile';
+import Login from './routes/login';
+import CreateAccount from './routes/create-account';
+import { createGlobalStyle, styled } from 'styled-components';
 import reset from 'styled-reset';
-
 import { useEffect, useState } from 'react';
-// components
-import Layout from './components/layout.tsx';
-import LoadingScreen from './components/loading-screen.tsx';
-import ProtectedRoute from './components/protected-route.tsx';
-// routes
-import Home from './routes/home.tsx';
-import Profile from './routes/profile.tsx';
-import CreateAccount from './routes/create-account.tsx';
-import Login from './routes/login.tsx';
-import { auth } from './firebase.ts';
+import LoadingScreen from './components/loading-screen';
+import { auth } from './firebase';
+import ProtectedRoute from './components/protected-route';
 
-// router
 const router = createBrowserRouter([
-  // 기본 router(/ -> Layout)
   {
     path: '/',
     element: (
@@ -25,7 +19,6 @@ const router = createBrowserRouter([
         <Layout />
       </ProtectedRoute>
     ),
-    // Layout 하위 router
     children: [
       {
         path: '',
@@ -37,18 +30,16 @@ const router = createBrowserRouter([
       },
     ],
   },
-  // 계정 router
-  {
-    path: '/create-account',
-    element: <CreateAccount />,
-  },
-  // 로그인 router
   {
     path: '/login',
     element: <Login />,
   },
+  {
+    path: '/create-account',
+    element: <CreateAccount />,
+  },
 ]);
-// global styles
+
 const GlobalStyles = createGlobalStyle`
   ${reset};
   * {
@@ -56,25 +47,25 @@ const GlobalStyles = createGlobalStyle`
   }
   body {
     background-color: black;
-    color: white;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif
+    color:white;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  }
+  ::-webkit-scrollbar {
+    display:none;
   }
 `;
 
-// Wrapper
 const Wrapper = styled.div`
   height: 100vh;
   display: flex;
   justify-content: center;
 `;
+
 function App() {
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setLoading] = useState(true);
   const init = async () => {
-    // 최초 인증 상태가 완료될 때 시작되는 Promise return
-    // Firebase가 쿠키와 토큰을 읽고, 백엔드와 소통해서 로그인 여부 확인
     await auth.authStateReady();
-    // firebase 기다리기 위해
-    setIsLoading(false);
+    setLoading(false);
   };
   useEffect(() => {
     init();

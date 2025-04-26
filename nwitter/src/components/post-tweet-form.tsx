@@ -1,5 +1,9 @@
 import { styled } from 'styled-components';
 import { useState } from 'react';
+// firebase
+import { addDoc, collection, updateDoc } from 'firebase/firestore';
+import { uploadBytes, getDownloadURL, ref } from 'firebase/storage';
+import { auth, db, storage } from '../firebase.ts';
 const Wrapper = styled.div``;
 
 const Form = styled.form`
@@ -68,10 +72,51 @@ function PostTweetForm() {
       setFile(files[0]);
     }
   }
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const user = auth.currentUser;
+    // console.log(user);
+    if (!user || isLoading || tweet === '' || tweet.length > 200) {
+      return;
+    }
+    try {
+      setIsLoading(true);
+
+      // db의 tweets 컬렉션에 Document(Data) 추가
+      const doc = await addDoc(collection(db, 'tweets'), {
+        tweet,
+        createdAt: Date.now(),
+        username: user.displayName || 'Anonymous',
+        photo: null,
+        userId: user.uid,
+      });
+      if (file) {
+        // Storage의 tweets 폴더의 각 user.uid 별로 트윗 id에 업로드한 파일이 담기게 될 거임
+        const locationRef = ref(storage, `tweets/${user.uid}/${doc.id}`);
+        console.log(locationRef);
+        // 해당 location에 해당 file을 Byte 단위로 업로드한다
+        const result = await uploadBytes(locationRef, file);
+        console.log(result);
+        // 해당 업로드 결과 url(이미지 저장 url)
+        const url = await getDownloadURL(result.ref);
+        console.log(url);
+        // document에 photo가 있기 때문에, url
+        updateDoc(doc, {
+          photo: url,
+        });
+      }
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Wrapper>
-      <Form>
+      <Form onSubmit={onSubmit}>
         <TextArea
+          required
           rows={5}
           maxLength={200}
           onChange={onTextChange}

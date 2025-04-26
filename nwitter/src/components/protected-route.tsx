@@ -1,16 +1,14 @@
-import { auth } from '../firebase.ts';
 import { Navigate } from 'react-router-dom';
+import { auth } from '../firebase';
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  // 현재 인증된 유저
+export default function ProtectedRoute({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const user = auth.currentUser;
-
-  // user값이 Null일 경우
-  if (!user) {
-    // 로그인 페이지로 Navigate
+  if (user === null) {
     return <Navigate to="/login" />;
   }
-  return <div>{children}</div>;
+  return children;
 }
-
-export default ProtectedRoute;
