@@ -14,9 +14,20 @@ interface Props {
   userId: string;
   id: string;
   photo?: string;
-  setUpdate: React.Dispatch<React.SetStateAction<boolean>>;
+  onClose: () => void;
 }
-const Wrapper = styled.div``;
+const Wrapper = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
 const Form = styled.form`
   display: flex;
   flex-direction: column;
@@ -91,7 +102,7 @@ const RestoreFileButton = styled.button`
   cursor: pointer;
 `;
 
-function UpdateTweetForm({ tweet, userId, id, photo, setUpdate }: Props) {
+function UpdateTweetForm({ tweet, userId, id, photo, onClose }: Props) {
   const user = auth.currentUser;
   const [isLoading, setIsLoading] = useState(false);
   const [updatedTweet, setUpdatedTweet] = useState(tweet);
@@ -172,21 +183,22 @@ function UpdateTweetForm({ tweet, userId, id, photo, setUpdate }: Props) {
     } catch (e) {
       console.log(e);
     } finally {
+      onClose();
       setIsLoading(false);
       setUpdatedFile(null);
       setUpdatedTweet('');
-      setUpdatedPhoto(''); // 모달 닫을 때 초기화
+      setUpdatedPhoto('');
     }
   };
 
   const onCancel = () => {
-    setUpdate(false);
+    onClose();
     setUpdatedTweet('');
     setIsLoading(false);
   };
 
   return (
-    <Wrapper>
+    <Wrapper onClick={(e) => e.stopPropagation()}>
       <CancelBtn onClick={onCancel} type="button" value="Cancel" />
       <Form onSubmit={onSubmit}>
         {/* 자동으로 커서가 입력창 안에 있도록 */}

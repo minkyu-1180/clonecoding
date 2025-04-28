@@ -4,7 +4,12 @@ import { deleteObject, ref } from 'firebase/storage';
 import { styled } from 'styled-components';
 import { ITweet } from './timeline';
 import { deleteDoc } from 'firebase/firestore';
-import UpdateTweetForm from './update-tweet-form.tsx';
+import { useState } from 'react';
+import ReactDOM from 'react-dom'; // ReactDOM import
+
+// import UpdateTweetForm from './update-tweet-form.tsx';
+import UpdateTweetForm from './update-tweet-form copy.tsx';
+
 const Wrapper = styled.div`
   display: grid;
   grid-template-columns: 3fr 1fr;
@@ -35,7 +40,13 @@ const Payload = styled.p`
   margin: 10px 0px;
   font-size: 18px;
 `;
-
+const ButtonWrapper = styled.div`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 5px;
+`;
 const DeleteButton = styled.button`
   background-color: tomato;
   color: white;
@@ -46,17 +57,44 @@ const DeleteButton = styled.button`
   text-transform: uppercase;
   border-radius: 5px;
   cursor: pointer;
-  position: absolute;
-  top: 10px;
-  right: 10px;
+`;
+const UpdateButton = styled.button`
+  background-color: tomato;
+  color: white;
+  font-weight: 600;
+  border: 0;
+  font-size: 12px;
+  padding: 5px 10px;
+  text-transform: uppercase;
+  border-radius: 5px;
+  cursor: pointer;
+`;
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7); /* 반투명 배경 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* 다른 요소 위에 오도록 z-index 설정 */
 `;
 
 export default function Tweet({ username, photo, tweet, userId, id }: ITweet) {
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const user = auth.currentUser;
-  const onUpdate = async () => {
+
+  const openUpdateModal = () => {
     if (user?.uid !== userId) {
       return;
     }
+    setIsModalOpen(true);
+  };
+  const closeUpdateModal = () => {
+    setIsModalOpen(false);
   };
   const onDelete = async () => {
     // 로그인 하지 않았거나, 해당 트윗 작성자가 로그인 유저가 아닐 경우
@@ -81,6 +119,9 @@ export default function Tweet({ username, photo, tweet, userId, id }: ITweet) {
     } finally {
     }
   };
+
+  const modalRoot = document.body;
+
   return (
     <Wrapper>
       <Column>
@@ -89,8 +130,26 @@ export default function Tweet({ username, photo, tweet, userId, id }: ITweet) {
       </Column>
       <Column>{photo ? <Photo src={photo} /> : null}</Column>
       {user?.uid === userId ? (
-        <DeleteButton onClick={onDelete}>X</DeleteButton>
+        <ButtonWrapper>
+          <DeleteButton onClick={onDelete}>X</DeleteButton>
+          <UpdateButton onClick={openUpdateModal}>Edit</UpdateButton>
+        </ButtonWrapper>
       ) : null}
+
+      {isModalOpen && modalRoot
+        ? ReactDOM.createPortal(
+            <ModalOverlay onClick={(e) => e.stopPropagation()}>
+              <UpdateTweetForm
+                tweet={tweet}
+                userId={userId}
+                id={id}
+                photo={photo}
+                onClose={closeUpdateModal}
+              />
+            </ModalOverlay>,
+            modalRoot
+          )
+        : null}
     </Wrapper>
   );
 }
