@@ -7,8 +7,8 @@ import { deleteDoc } from 'firebase/firestore';
 import { useState } from 'react';
 import ReactDOM from 'react-dom'; // ReactDOM import
 
-// import UpdateTweetForm from './update-tweet-form.tsx';
-import UpdateTweetForm from './update-tweet-form copy.tsx';
+import UpdateTweetForm from './update-tweet-form.tsx';
+// import UpdateTweetForm from './update-tweet-form copy.tsx';
 
 const Wrapper = styled.div`
   display: grid;
